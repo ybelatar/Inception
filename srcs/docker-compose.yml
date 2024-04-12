@@ -1,0 +1,112 @@
+services:
+  
+  mariadb:
+    container_name: mariadb
+    build: requirements/mariadb
+    restart: always
+    networks:
+      - inception
+    volumes:
+      - db:/var/lib/mysql
+    env_file: .env
+
+  nginx:
+    container_name: nginx
+    build: requirements/nginx
+    restart: always
+    volumes:
+      - wp:/var/www/html
+    depends_on:
+      - wordpress
+      - adminer
+    ports:
+      - "443:443"
+    networks:
+      - inception
+
+  wordpress:
+    container_name: wordpress
+    build: requirements/wordpress
+    depends_on:
+      - mariadb
+    volumes:
+      - wp:/var/www/html
+    networks:
+      - inception
+    env_file: .env
+
+  adminer:
+    container_name: adminer
+    build: requirements/bonus/adminer
+    restart: always
+    networks:
+      - inception
+    env_file: .env
+  
+  redis:
+    container_name: redis
+    build: requirements/bonus/redis
+    restart: always
+    networks:
+      - inception
+    env_file: .env
+  
+  ftp:
+    container_name: ftp
+    build: requirements/bonus/ftp
+    restart: always
+    networks:
+      - inception
+    ports:
+      - "20:20"
+      - "21:21"
+      - "40000-40050:40000-40050"
+    env_file: .env
+
+  portfolio:
+    container_name: portfolio
+    build: requirements/bonus/portfolio
+    restart: always
+    networks:
+      - inception
+    ports:
+      - "3000:3000"
+
+  # minecraft:
+  #   container_name: minecraft
+  #   build: requirements/bonus/minecraft
+  #   restart: always
+  #   networks:
+  #     - inception
+  #   ports:
+  #     - "25565:25565"
+  #   volumes:
+  #     - mc:/home/ybelatar/minecraft
+
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+volumes:
+  db:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: /home/ybelatar/data/mariadb
+
+  wp:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: /home/ybelatar/data/wordpress
+
+  mc:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: /home/ybelatar/data/minecraft
